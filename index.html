@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset = "utf-8"/>
+        <title>
+            INLINE test
+        </title>
+    </head>
+    <body>    
+        <form action="updateDB.php">
+            <button type = "submit">Обновить БД</button>
+        </form>
+        <h2>Поиск комментария</h2>
+        
+        <form onsubmit="return search(this)">
+            <input type = "text" placeholder= "Введите текст" id = "searchInput"/>
+            <input type ="submit" value = "Поиск"/>
+        </form>
+        <p>Ответ: </p>
+        <p id = "answer"></p>
+        <script src = "script.js"></script>
+    </body>
+</html>
