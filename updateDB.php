@@ -21,6 +21,7 @@
             echo "<form action = 'index.html'><button type = 'submit'>ОК</button></form>";
             echo "<script>console.log('Загружено ".$posts_upd." записей и ".$comments_upd." комментариев');</script>";
 
+            // обновление таблицы с резервированием в файл
             function updateTable($url, $tableName) {
                 global $link;
                 $count = 0;
@@ -40,28 +41,41 @@
                 
                 // Подготовка запроса для добавления данных в БД
                 $data = json_decode(file_get_contents($url));
+                $addsArray = prepareAdding($data,$tableName);
+
+                // Отправка подготовленного запроса в СУБД
+                if(mysqli_query($link,$addsArray['statement'])) {
+                    return $addsArray['count'];
+                } else {
+                    $db_err = mysqli_error($link);
+                    $reserved_data = json_decode(file_get_contents($tableName.'.json'));
+                    $reserved_addsArray = prepareAdding($reserved_data,$tableName);
+                    mysqli_query($link, $reserved_addsArray['statement']);
+                    die("INSERT trouble: ".$db_err);
+                };
+            }
+
+            // Подготовка запроса для добавления
+            function prepareAdding($data, $tableName) {
                 $statement = "INSERT INTO `".$tableName."` (";
-                foreach($data[0] as $key=>$value) {
+                $count = 0;
+                foreach($data[0] as $key=> $value) {
                     $statement.=$key.", ";
                 }
                 $statement = mb_substr($statement,0,-2);
-                $statement.=") VALUES ";
+                $statement .= ") VALUES ";
                 foreach($data as $row) {
-                    $statement.="(";
+                    $statement .="(";
                     foreach($row as $value) {
-                        $statement.="'".$value."', ";
+                        $statement .= "'".$value."', ";
                     }
                     $statement = mb_substr($statement,0,-2);
-                    $statement.="),";
+                    $statement .= "),";
                     $count++;
                 }
                 $statement = mb_substr($statement,0,-1);
-                $statement.=";";
-
-                // Отправка подготовленного запроса в СУБД
-                mysqli_query($link,$statement)
-                or die("INSERT trouble: ".mysqli_error($link));
-                return $count;
+                $statement .=";";
+                return array('statement'=>$statement,'count'=>$count);
             }
         ?>
     </body>
